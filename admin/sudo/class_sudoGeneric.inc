@@ -292,6 +292,15 @@ class sudo extends plugin
           ADD values 
          *********************/
 
+        /* Acceptable characters for various fields */
+        $ipv4_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+        $fqdn_regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$";
+        $attr_regex = array(
+            "sudoUser" => "/^[a-z0-9{$c}]*$/i",
+            "sudoHost" => "/$ipv4_regex|$fqdn_regex/i",
+            "sudoRunAs" => "/^[a-z0-9{$c}]*$/i"
+        );
+
         /* User / Host / Runas */ 
         foreach(array("sudoUser","sudoHost","sudoRunAs") as $attr){
             if($this->acl_is_writeable($attr) && 
@@ -300,12 +309,12 @@ class sudo extends plugin
                     !empty($_POST['new_'.$attr])){
 
                 $c = preg_quote(' *+-?_|!\'"()\.','/');
-                if(preg_match("/^[a-z0-9{$c}]*$/i",get_post('new_'.$attr))){
+                if(preg_match($attr_regex[$attr],get_post('new_'.$attr))){
                     $attrs = $this->$attr;
                     $attrs[] =  trim(get_post('new_'.$attr)); 
                     $this->$attr = $attrs;
                 }else{
-                    msg_dialog::display(_("Error"),msgPool::invalid($attr,get_post('new_'.$attr),"/[a-z0-9{$c}]/i"));
+                  msg_dialog::display(_("Error"),msgPool::invalid($attr,get_post('new_'.$attr),$attr_regex[$attr])); 
                 }
             }
         }
