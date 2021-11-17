@@ -25,7 +25,7 @@ class sudoManagement extends management
     var $plHeadline     = "Sudo rules";
     var $plDescription  = "Manage all aspects of system wide sudoers definitions";
     var $plIcon  = "plugins/sudo/images/sudo.png";
-
+    var $matIcon = "admin_panel_settings";
     // Tab definition 
     protected $tabClass = "sudotabs";
     protected $tabType = "SUDOTABS";

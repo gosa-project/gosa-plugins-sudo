@@ -129,6 +129,8 @@ class sudo extends plugin
         /* Call parent execute */
         plugin::execute();
 
+        $theme = getThemeName();
+
         // Set list ACLs
         foreach(array('sudoUser','sudoCommand','sudoHost','sudoRunAs') as $l){
             $ll = $l."List";
@@ -156,7 +158,7 @@ class sudo extends plugin
         }
 
         /* Add selected hosts  to the sudoUser list */ 
-        if(isset($_POST['userGroupSelect_save']) && $this->dialog instanceof userGroupSelect){
+        if(isset($_POST['userGroupSelect_save']) || isset($_POST['ok-save']) && $this->dialog instanceof userGroupSelect){
             if($this->acl_is_writeable("sudoUser")){
                 foreach($this->dialog->save() as $entry){
                     if(in_array_strict("posixGroup",$entry['objectClass'])){
@@ -173,7 +175,7 @@ class sudo extends plugin
             $this->dialog = NULL;
         }    
 
-        if(isset($_POST['userGroupSelect_cancel']) && $this->dialog instanceOf userGroupSelect){
+        if(isset($_POST['userGroupSelect_cancel']) || isset($_POST['cancel-abort']) && $this->dialog instanceOf userGroupSelect){
             unset($this->dialog);
             $this->dialog = NULL;
         }    
@@ -205,7 +207,7 @@ class sudo extends plugin
         }
 
         /* Add selected hosts  to the sudoHost list */ 
-        if(isset($_POST['systemSelect_save']) && $this->dialog instanceof systemSelect){
+        if(isset($_POST['systemSelect_save']) || isset($_POST['ok-save']) && $this->dialog instanceof systemSelect){
             if($this->acl_is_writeable("sudoHost")){
                 foreach($this->dialog->save() as $entry){
                     $cn = trim($entry['cn'][0]);
@@ -218,7 +220,7 @@ class sudo extends plugin
             $this->dialog = NULL;
         }    
 
-        if(isset($_POST['systemSelect_cancel']) && $this->dialog instanceOf systemSelect){
+        if(isset($_POST['systemSelect_cancel']) || isset($_POST['cancel-abort']) && $this->dialog instanceOf systemSelect){
             unset($this->dialog);
             $this->dialog = NULL;
         }    
@@ -308,13 +310,13 @@ class sudo extends plugin
                     isset($_POST['new_'.$attr]) && 
                     !empty($_POST['new_'.$attr])){
 
-                $c = preg_quote(' *+-?_|!\'"()\.','/');
+                $c = preg_quote(' *+-?_|!\'"()','/');
                 if(preg_match($attr_regex[$attr],get_post('new_'.$attr))){
                     $attrs = $this->$attr;
                     $attrs[] =  trim(get_post('new_'.$attr)); 
                     $this->$attr = $attrs;
                 }else{
-                  msg_dialog::display(_("Error"),msgPool::invalid($attr,get_post('new_'.$attr),$attr_regex[$attr])); 
+                    msg_dialog::display(_("Error"),msgPool::invalid($attr,get_post('new_'.$attr),$attr_regex[$attr]));
                 }
             }
         }
@@ -344,9 +346,21 @@ class sudo extends plugin
 
         /* Fill listings
          */
-        $neg_img= image('plugins/sudo/images/negate.png','','!');
-        $option = image('plugins/sudo/images/negate.png','neg_%ATTR%_%KEY%');
-        $option.= image('images/lists/trash.png', 'delS_%ATTR%_%KEY%');
+
+        switch ($theme) {
+            case 'classic':
+                $neg_img= image('plugins/sudo/images/negate.png','','!');
+                $option = image('plugins/sudo/images/negate.png','neg_%ATTR%_%KEY%');
+                $option.= image('images/lists/trash.png', 'delS_%ATTR%_%KEY%');
+                break;
+            
+            default:
+                $neg_img= image("<i class='material-icons'>not_interested</i>",'','!');
+                $option = image("<i class='material-icons input-icons'>not_interested</i>",'neg_%ATTR%_%KEY%');
+                $option.= image("<i class='material-icons input-icons'>delete</i>", 'delS_%ATTR%_%KEY%');
+                break;
+        }
+        
         foreach(array('sudoUser','sudoCommand','sudoHost','sudoRunAs') as $l){
             $l.="Data";
             $$l = array();
@@ -371,9 +385,18 @@ class sudo extends plugin
             $smarty->assign("listing_{$attr}", $this->$list->render());
         }
 
-
-        $img1 = image('plugins/users/images/select_user.png','',_("User"));
-        $img2 = image('plugins/groups/images/select_group.png','',_("Group"));
+        switch ($theme) {
+            case 'classic':
+                $img1 = image('plugins/users/images/select_user.png','',_("User"));
+                $img2 = image('plugins/groups/images/select_group.png','',_("Group"));
+                break;
+            
+            default:
+                $img1 = image("<i class='material-icons'>person</i>",'',_("User"));
+                $img2 = image("<i class='material-icons'>group</i>",'',_("Group"));
+                break;
+        }
+        
         $sudoUserData  = array();
         foreach($this->sudoUser as $id => $entry){
             $neg = "";
