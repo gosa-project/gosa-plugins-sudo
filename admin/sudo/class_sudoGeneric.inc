@@ -31,9 +31,13 @@ class sudo extends plugin
     protected $description= "";
 
     protected $sudoUser   = array("ALL");
+    protected $sudoUserList;
     protected $sudoCommand= array();
+    protected $sudoCommandList;
     protected $sudoHost   = array("ALL");
+    protected $sudoHostList;
     protected $sudoRunAs  = array("ALL");
+    protected $sudoRunAsList;
 
     private $is_default = FALSE;
 
@@ -45,6 +49,7 @@ class sudo extends plugin
 	
     public $orig_dn;
     private $systemEnabled = FALSE;
+    public trustModeDialog $trustModeDialog;
 
     /*! \brief  Returns to the base department for sudo roles.
       This department is then used to store new roles.
