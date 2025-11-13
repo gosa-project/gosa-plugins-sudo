@@ -31,9 +31,13 @@ class sudo extends plugin
     protected $description= "";
 
     protected $sudoUser   = array("ALL");
+    protected $sudoUserList;
     protected $sudoCommand= array();
+    protected $sudoCommandList;
     protected $sudoHost   = array("ALL");
+    protected $sudoHostList;
     protected $sudoRunAs  = array("ALL");
+    protected $sudoRunAsList;
 
     private $is_default = FALSE;
 
@@ -45,6 +49,7 @@ class sudo extends plugin
 	
     public $orig_dn;
     private $systemEnabled = FALSE;
+    public trustModeDialog $trustModeDialog;
 
     /*! \brief  Returns to the base department for sudo roles.
       This department is then used to store new roles.
@@ -158,9 +163,14 @@ class sudo extends plugin
         }
 
         /* Add selected hosts  to the sudoUser list */ 
-        if(isset($_POST['userGroupSelect_save']) || isset($_POST['ok-save']) && $this->dialog instanceof userGroupSelect){
-            if($this->acl_is_writeable("sudoUser")){
-                foreach($this->dialog->save() as $entry){
+        if (isset($_POST['add_users_finish']) || isset($_POST['userGroupSelect_save']) || isset($_POST['ok-save']) && $this->dialog instanceof userGroupSelect) {
+            $users = $this->dialog->detectPostActions();
+            if (isset($users['targets'])) {
+                $headpage = $this->dialog->getHeadpage();
+
+                foreach ($users['targets'] as $dn) {
+                    $entry = $headpage->getEntry($dn);
+
                     if(in_array_strict("posixGroup",$entry['objectClass'])){
                         $name = trim("%".$entry['cn'][0]);
                     }elseif(isset($entry['uid'][0])){
